@@ -4,6 +4,7 @@ import api
 import cv2
 import time
 
+
 # 读取config.json文件
 with open('config.json', 'r') as f:
     config = json.load(f)
@@ -14,11 +15,22 @@ def is_game_on():
     with open('config.json', 'r') as f:
         config = json.load(f)
     adb_path = config['adb_path'] 
-    output = os.popen(f'{adb_path} -s {device_id} shell-s {device_id} shell dumpsys window windows | grep -E "mCurrentFocus"').read()
-    if appid not in output:
-        # 应用不在前台，运行应用
-        os.popen(f'{adb_path} -s {device_id} shell monkey -p {appid} -c android.intent.category.LAUNCHER 1')
-        time.sleep(8)
+    command = (f'{adb_path} -s {device_id} '
+               'shell dumpsys window windows')
+    try:
+        process = os.popen(command)
+        output = process.read()
+        process.close()
+        if appid not in output:
+            # 应用不在前台，运行应用
+            print("游戏不在前台，正在启动")
+            os.popen(f'{adb_path} -s {device_id} shell monkey -p {appid} -c android.intent.category.LAUNCHER 1')
+            time.sleep(8)
+        else:
+            # 处理输出
+            print('应用已在前台')
+    except Exception as e:
+        print(f'Error: {e}')
     
 
 def where_am_i():
@@ -31,6 +43,10 @@ def where_am_i():
         'policy': {'img': cv2.imread('img/agree.png', cv2.IMREAD_GRAYSCALE), 'pos': (600, 430, 200, 100)},
         'update': {'img': cv2.imread('img/download.png', cv2.IMREAD_GRAYSCALE), 'pos': (750, 400, 200, 50)},
         'login': {'img': cv2.imread('img/login.png', cv2.IMREAD_GRAYSCALE), 'pos': (590, 510, 200, 50)},
+        'menu': {'img': cv2.imread('img/menu0.png', cv2.IMREAD_GRAYSCALE), 'pos': (48,506, 90, 90)},
+        'nothome': {'img': cv2.imread('img/home.png', cv2.IMREAD_GRAYSCALE), 'pos': (120,25, 50, 50)},
+        'notmenu': {'img': cv2.imread('img/back.png', cv2.IMREAD_GRAYSCALE), 'pos': (25,25, 50, 50)},
+        'notmenu2': {'img': cv2.imread('img/back2.png', cv2.IMREAD_GRAYSCALE), 'pos': (25,25, 50, 50)},
     }
 
     # 使用cv2.matchTemplate函数和循环判断多个图像中的某一个是否在另一张图像中，并返回匹配到的图像的名称
@@ -40,8 +56,15 @@ def where_am_i():
         x, y, w, h = template_info['pos']
         template_img = template_info['img']
         screen_gray_cropped = screen_gray[y:y+h, x:x+w]
-        print(f'screen_gray_cropped shape: {screen_gray_cropped.shape}')
+        #print(f'screen_gray_cropped shape: {screen_gray_cropped.shape}')
         #print(f'template_img shape: {template_img.shape}')
+        # 对图像和模板进行归一化
+        #img_norm = cv2.normalize(screen_gray_cropped, None, 0, 255, cv2.NORM_MINMAX)
+        #template_norm = cv2.normalize(template_img, None, 0, 255, cv2.NORM_MINMAX)
+        # 对灰度图像进行直方图均衡化
+        #img_eq = cv2.equalizeHist(screen_gray_cropped)
+        #template_eq = cv2.equalizeHist(template_img)
+        # 使用cv2.matchTemplate函数进行模板匹配
         result = cv2.matchTemplate(screen_gray_cropped, template_img, cv2.TM_CCOEFF_NORMED)
         if cv2.minMaxLoc(result)[1] > max_val:
             max_val = cv2.minMaxLoc(result)[1]
@@ -55,6 +78,7 @@ def where_am_i():
 
     if max_val < 0.6:
         print('未匹配到任何模板图像')
+        print(max_val,max_template_name)
         return None
     else:
         print(f'匹配到了{max_template_name}')

@@ -1,6 +1,6 @@
-{"adb_path": "C:\\CODE\\R1999\\python\\R1999T\\adb/platform-tools/adb.exe",
+{"adb_path": "C:\\CODE\\R1999\\python\\R1999T\\adb\\platform-tools\\adb.exe",
 "adb_address":"127.0.0.1:5555",
-"device_id": "127.0.0.1:5555",
+"device_id": "emulator-5554",
 "bluestacks_conf_path": "C:\\ProgramData\\BlueStacks_nxt_cn\\Bluestacks.conf",
 "bluestacks_adb_port_keys": "bst.instance.Pie64.status.adb_port"
 }

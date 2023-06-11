@@ -19,7 +19,7 @@ def download_adb():
     # 删除zip文件
     os.remove('platform-tools.zip')
     project_path = os.path.abspath(os.path.dirname(__file__))
-    adb_path = os.path.join(project_path, 'adb/platform-tools/adb.exe')
+    adb_path = os.path.join(project_path, 'adb\\platform-tools\\adb.exe')
     config['adb_path'] = adb_path
     with open('config.json', 'w') as f:
         json.dump(config, f)
@@ -36,13 +36,12 @@ def get_bluestacks_adb_port():
     else:
         with open(bluestacks_conf_path, 'r') as f:
             conf = f.read()
-
-    # 使用正则表达式匹配adb端口号
-    for key in bluestacks_adb_port_keys:
-        match = re.search(rf'{key}="(\d+)"', conf)
-        if match:
-            adb_port = match.group(1)
-            return adb_port
+        # 使用正则表达式匹配adb端口号
+        for key in bluestacks_adb_port_keys:
+            match = re.search(rf'{key}="(\d+)"', conf)
+            if match:
+                adb_port = match.group(1)
+                return adb_port
     return None
 
 def check_device_connection():
@@ -85,15 +84,37 @@ def check_device_connection():
                 device =line.split('\t')[0]
                 break
         if not device:
-            print('Error: 设备未连接')
-            return None
+            print('Error: 无设备，尝试连接adb_address')
+            if 'adb_address' in config and config['adb_address']:
+                device = config['adb_address']
+                os.system(f'{adb_path} connect {device}')
+                output = os.popen(f'{adb_path} devices').read().strip().split('\n')
+                if len(output) <= 1 or output[0] != 'List of devices attached':
+                    print('Error: 无法连接adb_address，尝试连接蓝叠')
+                    blurestack=connect_bluestack()
+                    if not blurestack:
+                        return None
+                    else:
+                        return blurestack
+                else:
+                    print(f'已连接设备：{device}')
+                    device_id = device
+                    config['device_id'] = device_id
+                    return device
+            else:
+                print('Error:adb_address为空，尝试连接蓝叠')
+                blurestack=connect_bluestack()
+                if not blurestack:
+                    return None
+                else:
+                    return blurestack
         else:
             print(f'已连接设备：{device}')
             return device
 
 def connect_bluestack():
     adb_path = config['adb_path']
-    device = '127.0.0.1:' + get_bluestacks_adb_port()
+    device = '127.0.0.1:' + str(get_bluestacks_adb_port())
     os.system(f'{adb_path} connect {device}')
     output = os.popen(f'{adb_path} devices').read().strip().split('\n')
     if len(output) <= 1 or output[0] != 'List of devices attached':
