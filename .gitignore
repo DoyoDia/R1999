@@ -5,7 +5,9 @@ __pycache__/
 
 # C extensions
 *.so
-
+#adb
+adb/
+cache/
 # Distribution / packaging
 .Python
 build/
