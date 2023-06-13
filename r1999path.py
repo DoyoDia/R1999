@@ -4,6 +4,8 @@ import api
 import cv2
 import time
 
+import api
+
 
 # 读取config.json文件
 with open('config.json', 'r') as f:
@@ -41,12 +43,15 @@ def where_am_i():
     template_imgs = {
         'title': {'img': cv2.imread('img/title.png', cv2.IMREAD_GRAYSCALE), 'pos': (390, 240, 500, 220)},
         'policy': {'img': cv2.imread('img/agree.png', cv2.IMREAD_GRAYSCALE), 'pos': (600, 430, 200, 100)},
-        'update': {'img': cv2.imread('img/download.png', cv2.IMREAD_GRAYSCALE), 'pos': (750, 400, 200, 50)},
+        'update': {'img': cv2.imread('img/download.png', cv2.IMREAD_GRAYSCALE), 'pos': (770,440, 200, 60)},
+        'close': {'img': cv2.imread('img/close.png', cv2.IMREAD_GRAYSCALE), 'pos': (640,0, 640, 720)},
+        'got':{'img': cv2.imread('img/got.png', cv2.IMREAD_GRAYSCALE), 'pos': (605,20, 80, 80)},
+        'signin':{'img': cv2.imread('img/signin.png', cv2.IMREAD_GRAYSCALE), 'pos': (739,40, 50, 50)},
         'login': {'img': cv2.imread('img/login.png', cv2.IMREAD_GRAYSCALE), 'pos': (590, 510, 200, 50)},
         'menu': {'img': cv2.imread('img/menu0.png', cv2.IMREAD_GRAYSCALE), 'pos': (48,506, 90, 90)},
         'nothome': {'img': cv2.imread('img/home.png', cv2.IMREAD_GRAYSCALE), 'pos': (120,25, 50, 50)},
         'notmenu': {'img': cv2.imread('img/back.png', cv2.IMREAD_GRAYSCALE), 'pos': (25,25, 50, 50)},
-        'notmenu2': {'img': cv2.imread('img/back2.png', cv2.IMREAD_GRAYSCALE), 'pos': (25,25, 50, 50)},
+        'notmenu2': {'img': cv2.imread('img/back2.png', cv2.IMREAD_GRAYSCALE), 'pos': (25,25, 50, 50)},#白色背景的返回键，适用于资源关卡
     }
 
     # 使用cv2.matchTemplate函数和循环判断多个图像中的某一个是否在另一张图像中，并返回匹配到的图像的名称
@@ -85,6 +90,21 @@ def where_am_i():
         # 将结果保存到cache/result.png文件中
         cv2.imwrite('cache/result.png', screen)
         return max_template_name
+def find_episode(n):
+    text, coords = api.corp_ocr_with_coords(0, 545, 1280, 30)
+    if not text:
+        print('未找到任何文本')
+        return None
+    number_str = ''.join(filter(str.isdigit, text[0]))
+    if number_str.endswith('7'):
+        number_str = number_str[:-1]
+    if number_str:
+        for i, word in enumerate(number_str):
+            if word.isdigit() and int(word) == n:
+                return coords[i]
+    else:
+        print('未找到数字')
+        return None
 
 def login():
     api.touch(635,248)

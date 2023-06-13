@@ -1,9 +1,6 @@
 import os
 import cv2
 
-# 创建gray文件夹
-if not os.path.exists('gray'):
-    os.makedirs('gray')
 # 遍历img文件夹下后缀为.png的所有图像，并将它们转换为灰度图像
 for filename in os.listdir('img/origin'):
     if filename.endswith('.png'):
